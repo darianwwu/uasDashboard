@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>River Restoration Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script type="module" crossorigin src="/uasDashboard/assets/index-bWVaPnEf.js"></script>
+  <link rel="stylesheet" crossorigin href="/uasDashboard/assets/index-599vx749.css">
+</head>
+<body>
+    <div class="dashboard-container">        <!-- Header Section -->        <header class="dashboard-header">
+            <h1>Renaturation of the River Aa, Münster Sentrup - Dashboard</h1>
+            <div class="header-info">
+                <span class="last-updated">Last updated: <span id="lastUpdate"></span></span>
+            </div>
+        </header>        <!-- Main Dashboard Grid -->
+        <main class="dashboard-main">
+            <!-- Top Grid Row - Square Boxes -->
+            <div class="widget-grid">
+                <!-- Live Weather Widget -->
+                <div class="widget square-widget" id="weather-widget">
+                    <h3>Live Weather</h3>
+                    <div class="widget-content">
+                        <div id="weather-data" class="weather-container">
+                            Loading weather data...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vegetation Distribution -->
+                <div class="widget square-widget" id="vegetation-chart">
+                    <h3>Vegetation</h3>
+                    <div class="widget-content">
+                        <div id="vegetation-container" class="chart-container small-chart">
+                            <canvas id="vegetationChart" width="200" height="120"></canvas>
+                        </div>
+                    </div>
+                </div>                <!-- Plant Health Statistics -->
+                <div class="widget square-widget" id="plant-health">
+                    <h3>Plant Health</h3>
+                    <div class="widget-content">
+                        <div class="health-stats compact-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Healthy:</span>
+                                <span class="stat-value healthy" id="healthy-plants">87%</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Unhealthy:</span>
+                                <span class="stat-value warning" id="diseased-plants">8%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>                <!-- Insect Statistics -->
+                <div class="widget square-widget" id="insect-stats">
+                    <h3>Insects</h3>
+                    <div class="widget-content">
+                        <div class="insect-stats compact-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Species:</span>
+                                <span class="stat-value" id="total-insects">12</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Beneficial:</span>
+                                <span class="stat-value good" id="beneficial-insects">78%</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Total number:</span>
+                                <span class="stat-value excellent" id="pollinator-activity">68</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Future Index 1 -->
+                <div class="widget square-widget future-widget" id="future-1">
+                    <h3>Water Quality</h3>
+                    <div class="widget-content">
+                        <div class="compact-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">pH Level:</span>
+                                <span class="stat-value good">7.2</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Oxygen:</span>
+                                <span class="stat-value excellent">8.5 mg/L</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Future Index 2 -->
+                <div class="widget square-widget future-widget" id="future-2">
+                    <h3>Wildlife</h3>
+                    <div class="widget-content">
+                        <div class="compact-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Birds:</span>
+                                <span class="stat-value excellent">34</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Mammals:</span>
+                                <span class="stat-value good">12</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>                <!-- Sensebox Stations -->
+                <div class="widget square-widget" id="sensebox-stations">
+                    <h3>Sensebox Stations</h3>
+                    <div class="widget-content">
+                        <div class="sensebox-buttons">
+                            <button class="sensebox-btn" data-station="river-center" data-coords="51.945028,7.572704">
+                                <span class="station-icon">🌊</span>
+                                <span class="station-name">River Center</span>
+                            </button>
+                            <button class="sensebox-btn" data-station="upstream" data-coords="51.947,7.570">
+                                <span class="station-icon">⬆️</span>
+                                <span class="station-name">Upstream</span>
+                            </button>
+                            <button class="sensebox-btn" data-station="downstream" data-coords="51.943,7.575">
+                                <span class="station-icon">⬇️</span>
+                                <span class="station-name">Downstream</span>
+                            </button>
+                            <button class="sensebox-btn" data-station="wetland" data-coords="51.946,7.569">
+                                <span class="station-icon">🌿</span>
+                                <span class="station-name">Wetland</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Future Index 4 -->
+                <div class="widget square-widget future-widget" id="future-4">
+                    <h3>[Spaceholder]</h3>
+                    <div class="widget-content">
+                        <div class="compact-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">[Index 1]:</span>
+                                <span class="stat-value good">...</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">[Index 2]:</span>
+                                <span class="stat-value excellent">...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Left Sidebar - Climate Chart -->
+            <aside class="sidebar left-sidebar">
+                <div class="widget tall-widget" id="climate-chart">
+                    <h3>Climate Data - Münster</h3>
+                    <div class="widget-content">
+                        <div id="climate-container" class="chart-container tall-chart">
+                            <canvas id="climateChart" width="250" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Central Map Area -->
+            <section class="map-area">
+                <div class="map-container">
+                    <div class="map-wrapper">
+                        <img id="river-map" src="/uasDashboard/assets/results_trimmed-8JQqPAWM.jpg" alt="Restored River Area" />
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Sidebar - Water Level Chart -->
+            <aside class="sidebar right-sidebar">
+                <div class="widget tall-widget" id="water-level">
+                    <h3>River Water Level</h3>
+                    <div class="widget-content">
+                        <div id="water-level-container" class="chart-container tall-chart">
+                            <canvas id="waterLevelChart" width="250" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </main><!-- Footer -->        <footer class="dashboard-footer">
+            <div class="footer-content">
+                <p>© UAS course Ifgi 2025 | Other sources [...]</p>
+                <div class="footer-controls">
+                    <button class="footer-btn" id="refresh-data">Refresh Data</button>
+                    <button class="footer-btn" id="export-data">Export Data</button>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+</body>
+</html>
