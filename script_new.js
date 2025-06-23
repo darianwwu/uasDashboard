@@ -2,13 +2,12 @@
 class RiverDashboard {
     constructor() {
         this.charts = {};
-        this.init();
-    }    init() {
+        this.init();    }    init() {
         this.updateLastUpdateTime();
         this.setupEventListeners();
         this.loadWeatherData();
         this.createCharts();
-        this.updateStatistics();
+        this.updateNewWidgetData();
           // Weather updates every 10 minutes for live data
         setInterval(() => {
             this.loadWeatherData();
@@ -16,7 +15,7 @@ class RiverDashboard {
         
         // Update other data every 5 minutes
         setInterval(() => {
-            this.updateStatistics();
+            this.updateData();
         }, 300000);
         
         // Update time every minute
@@ -35,131 +34,14 @@ class RiverDashboard {
             minute: '2-digit'
         });
         document.getElementById('lastUpdate').textContent = timeString;
-    }
-
-    setupEventListeners() {
+    }    setupEventListeners() {
         // Footer Controls
         document.getElementById('refresh-data').addEventListener('click', () => this.updateData());
         document.getElementById('export-data').addEventListener('click', () => this.exportData());
         
-        // Sensebox Station Controls
-        this.setupSenseboxControls();
-        
         // Window resize handler
         window.addEventListener('resize', () => this.handleResize());
-    }
-
-    setupSenseboxControls() {
-        const senseboxButtons = document.querySelectorAll('.sensebox-btn');
-        senseboxButtons.forEach(button => {
-            button.addEventListener('click', (e) => {
-                const stationId = button.dataset.station;
-                const coords = button.dataset.coords.split(',');
-                this.showStationOnMap(stationId, parseFloat(coords[0]), parseFloat(coords[1]));
-            });
-        });
-    }
-
-    showStationOnMap(stationId, lat, lon) {
-        // Remove existing pins
-        document.querySelectorAll('.map-pin').forEach(pin => pin.remove());
-        document.querySelectorAll('.station-info').forEach(info => info.remove());
-
-        const mapWrapper = document.querySelector('.map-wrapper');
-        const mapImage = document.getElementById('river-map');
-
-        // Calculate pin position (simplified - assumes image covers the coordinate range)
-        // This is a basic calculation - in a real app you'd use proper coordinate transformation
-        const centerLat = 51.945028;
-        const centerLon = 7.572704;
-        
-        const latOffset = (lat - centerLat) * 10000; // Scale factor for display
-        const lonOffset = (lon - centerLon) * 10000;
-        
-        const centerX = mapWrapper.offsetWidth / 2;
-        const centerY = mapWrapper.offsetHeight / 2;
-        
-        const pinX = centerX + lonOffset;
-        const pinY = centerY - latOffset;
-
-        // Create pin element
-        const pin = document.createElement('div');
-        pin.className = 'map-pin';
-        pin.style.left = `${pinX}px`;
-        pin.style.top = `${pinY}px`;
-
-        // Create station info
-        const stationData = this.getStationData(stationId);
-        const info = document.createElement('div');
-        info.className = 'station-info';
-        info.style.left = `${pinX + 25}px`;
-        info.style.top = `${pinY - 10}px`;
-          info.innerHTML = `
-            <h4>${stationData.name}</h4>
-            <div class="info-item">
-                <span class="info-label">Temperature:</span>
-                <span class="info-value">${stationData.temperature}°C</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">Humidity:</span>
-                <span class="info-value">${stationData.humidity}%</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">Water Level:</span>
-                <span class="info-value">${stationData.waterLevel}m</span>
-            </div>
-        `;
-
-        // Add click handler to remove info when clicking elsewhere
-        const closeInfo = (e) => {
-            if (!info.contains(e.target) && !pin.contains(e.target)) {
-                info.remove();
-                pin.remove();
-                document.removeEventListener('click', closeInfo);
-            }
-        };
-
-        mapWrapper.appendChild(pin);
-        mapWrapper.appendChild(info);
-
-        // Add close handler after a short delay
-        setTimeout(() => {
-            document.addEventListener('click', closeInfo);
-        }, 100);
-
-        console.log(`📍 Showing station: ${stationData.name} at ${lat}, ${lon}`);
-    }    getStationData(stationId) {
-        const stations = {
-            'river-center': {
-                name: 'Station 1',
-                temperature: (18 + Math.random() * 4).toFixed(1),
-                humidity: Math.round(65 + Math.random() * 10),
-                waterLevel: (2.1 + Math.random() * 0.4).toFixed(2)
-            },
-            'upstream': {
-                name: 'Station 2',
-                temperature: (17 + Math.random() * 4).toFixed(1),
-                humidity: Math.round(70 + Math.random() * 10),
-                waterLevel: (2.3 + Math.random() * 0.3).toFixed(2)
-            },
-            'downstream': {
-                name: 'Station 3',
-                temperature: (19 + Math.random() * 4).toFixed(1),
-                humidity: Math.round(60 + Math.random() * 15),
-                waterLevel: (1.9 + Math.random() * 0.5).toFixed(2)
-            },
-            'wetland': {
-                name: 'Station 4',
-                temperature: (16 + Math.random() * 5).toFixed(1),
-                humidity: Math.round(80 + Math.random() * 10),
-                waterLevel: (1.5 + Math.random() * 0.3).toFixed(2)
-            }
-        };
-
-        return stations[stationId] || stations['river-center'];
-    }
-
-    async loadWeatherData() {
+    }    async loadWeatherData() {
         // Show loading indicator
         document.getElementById('weather-data').innerHTML = `
             <div class="weather-loading">
@@ -314,9 +196,7 @@ class RiverDashboard {
         }
         
         this.loadClimateData(); // Load real climate data first
-        this.createWaterLevelChart();
-        this.createVegetationChart();
-    }    async loadClimateData() {
+    }async loadClimateData() {
         console.log('📊 Loading real climate data for Münster from official DWD sources...');
         
         // Real climate data for Münster from German Weather Service (DWD)
@@ -428,141 +308,30 @@ class RiverDashboard {
                 }
             }
         });
-    }
-
-    createWaterLevelChart() {
-        const ctx = document.getElementById('waterLevelChart').getContext('2d');
-        const now = new Date();
-        const labels = [];
-        const data = [];
+    }    updateNewWidgetData() {
+        // Update Water Quality data
+        document.getElementById('water-ph').textContent = (6.8 + Math.random() * 1.0).toFixed(1);
+        document.getElementById('water-conductivity').textContent = `${400 + Math.floor(Math.random() * 100)} μS/cm`;
+        document.getElementById('water-temperature').textContent = `${16 + Math.random() * 6}°C`.slice(0, 5);
+        document.getElementById('water-oxygen').textContent = `${7.5 + Math.random() * 2}`.slice(0, 3) + ' mg/L';
         
-        for (let i = 29; i >= 0; i--) {
-            const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-            labels.push(date.getDate());
-            // Simulate water level between 1.2 and 2.8 meters
-            data.push(Number((Math.sin(i * 0.2) * 0.5 + 2 + Math.random() * 0.3).toFixed(2)));
-        }
+        // Update Soil Health data
+        document.getElementById('soil-humidity').textContent = `${55 + Math.floor(Math.random() * 20)}%`;
+        document.getElementById('soil-temperature').textContent = `${14 + Math.random() * 8}°C`.slice(0, 5);
+        document.getElementById('soil-moisture').textContent = `${35 + Math.floor(Math.random() * 20)}%`;
         
-        this.charts.waterLevel = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Water Level (m)',
-                    data: data,
-                    borderColor: '#007aff',
-                    backgroundColor: 'rgba(0, 122, 255, 0.1)',
-                    tension: 0.4,
-                    fill: true,
-                    pointRadius: 1
-                }]
-            },            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'top',
-                        labels: {
-                            font: {
-                                size: 11
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        display: true,
-                        min: 1,
-                        max: 3,
-                        ticks: {
-                            font: {
-                                size: 10
-                            }
-                        }
-                    },                    x: {
-                        display: true,
-                        title: {
-                            display: true,
-                            text: 'Day of Month',
-                            font: {
-                                size: 10
-                            }
-                        },
-                        ticks: {
-                            font: {
-                                size: 10
-                            }
-                        }
-                    }
-                }
-            }
-        });
-    }    createVegetationChart() {
-        const ctx = document.getElementById('vegetationChart').getContext('2d');
-        this.charts.vegetation = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Grass', 'Shrubs', 'Trees', 'Aquatic', 'Other'],
-                datasets: [{
-                    data: [35, 25, 20, 15, 5],
-                    backgroundColor: [
-                        '#30d158',
-                        '#32d74b',
-                        '#007aff',
-                        '#64d2ff',
-                        '#ff9f0a'
-                    ],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'bottom',
-                        labels: {
-                            font: {
-                                size: 8
-                            },
-                            boxWidth: 8,
-                            padding: 4
-                        }
-                    }
-                },
-                cutout: '30%'
-            }
-        });
-    }    updateStatistics() {
-        // Update plant health stats with some variation (only healthy and unhealthy now)
-        document.getElementById('healthy-plants').textContent = `${85 + Math.floor(Math.random() * 10)}%`;
-        document.getElementById('diseased-plants').textContent = `${5 + Math.floor(Math.random() * 8)}%`;
+        // Update Biotic Factors data
+        document.getElementById('vegetation-presence').textContent = `${80 + Math.floor(Math.random() * 15)}%`;
+        document.getElementById('insect-count').textContent = `${20 + Math.floor(Math.random() * 10)} species`;
         
-        // Update insect stats (reduced species count to 12, removed pests)
-        document.getElementById('total-insects').textContent = `${10 + Math.floor(Math.random() * 4)}`; // 10-13 species
-        document.getElementById('beneficial-insects').textContent = `${75 + Math.floor(Math.random() * 8)}%`;
-        document.getElementById('pollinator-activity').textContent = Math.random() > 0.3 ? 'High' : 'Medium';
-    }updateData() {
+        console.log('✅ Updated all new widget data');    }updateData() {
         this.updateLastUpdateTime();
-        // Weather is updated separately with live timer (every 2 minutes)
-        this.updateStatistics();
+        // Weather is updated separately with live timer (every 10 minutes)
+        this.updateNewWidgetData();
         
-        // Update charts with new data
-        if (this.charts.waterLevel) {
-            const newData = Number((Math.sin(Date.now() * 0.0001) * 0.5 + 2 + Math.random() * 0.3).toFixed(2));
-            this.charts.waterLevel.data.datasets[0].data.push(newData);
-            this.charts.waterLevel.data.datasets[0].data.shift();
-            this.charts.waterLevel.data.labels.push(new Date().getDate());
-            this.charts.waterLevel.data.labels.shift();
-            this.charts.waterLevel.update();
-        }
-        
+        console.log('🔄 Data refreshed');
         this.showNotification('Data updated successfully!');
-    }
-
-    exportData() {
+    }    exportData() {
         // Simulate data export
         const data = {
             timestamp: new Date().toISOString(),
@@ -571,17 +340,20 @@ class RiverDashboard {
                 temperature: document.querySelector('.weather-temp')?.textContent || 'N/A',
                 lastUpdate: document.getElementById('lastUpdate').textContent
             },
-            plantHealth: {
-                healthy: document.getElementById('healthy-plants')?.textContent || 'N/A',
-                diseased: document.getElementById('diseased-plants')?.textContent || 'N/A',
-                growthRate: document.getElementById('growth-rate')?.textContent || 'N/A',
-                survivalRate: document.getElementById('survival-rate')?.textContent || 'N/A'
+            waterQuality: {
+                ph: document.getElementById('water-ph')?.textContent || 'N/A',
+                conductivity: document.getElementById('water-conductivity')?.textContent || 'N/A',
+                temperature: document.getElementById('water-temperature')?.textContent || 'N/A',
+                oxygen: document.getElementById('water-oxygen')?.textContent || 'N/A'
             },
-            insects: {
-                totalSpecies: document.getElementById('total-insects')?.textContent || 'N/A',
-                beneficial: document.getElementById('beneficial-insects')?.textContent || 'N/A',
-                pollinatorActivity: document.getElementById('pollinator-activity')?.textContent || 'N/A',
-                pestRatio: document.getElementById('pest-ratio')?.textContent || 'N/A'
+            soilHealth: {
+                humidity: document.getElementById('soil-humidity')?.textContent || 'N/A',
+                temperature: document.getElementById('soil-temperature')?.textContent || 'N/A',
+                moisture: document.getElementById('soil-moisture')?.textContent || 'N/A'
+            },
+            bioticFactors: {
+                vegetationPresence: document.getElementById('vegetation-presence')?.textContent || 'N/A',
+                insectCount: document.getElementById('insect-count')?.textContent || 'N/A'
             }
         };
         

@@ -33,7 +33,7 @@ class RiverDashboard {
         document.getElementById('refresh-data').addEventListener('click', () => this.updateData());
         document.getElementById('export-data').addEventListener('click', () => this.exportData());
         
-        // Window resize handler
+        // Window resize handler 
         window.addEventListener('resize', () => this.handleResize());
     }    loadInitialData() {
         // Simulate loading initial data
