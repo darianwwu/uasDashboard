@@ -814,3 +814,139 @@ body {
     font-weight: 500;
     color: #1d1d1f;
 }
+
+/* Clickable Values */
+.clickable-value {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 2px 4px;
+    border-radius: 4px;
+    position: relative;
+}
+
+.clickable-value:hover {
+    background: rgba(0, 122, 255, 0.1);
+    transform: scale(1.05);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.clickable-value:active {
+    transform: scale(0.98);
+}
+
+.clickable-value.selected {
+    background: rgba(0, 122, 255, 0.2);
+    border: 1px solid #007aff;
+}
+
+/* Measurement Pins */
+.measurement-pin {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    z-index: 15;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.measurement-pin:hover {
+    transform: scale(1.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+.measurement-pin.ph { background: #ff3b30; }
+.measurement-pin.conductivity { background: #007aff; }
+.measurement-pin.water-temperature { background: #ff9f0a; }
+.measurement-pin.oxygen { background: #30d158; }
+.measurement-pin.soil-humidity { background: #5856d6; }
+.measurement-pin.soil-temperature { background: #ff2d92; }
+.measurement-pin.soil-moisture { background: #64d2ff; }
+.measurement-pin.vegetation { background: #32d74b; }
+.measurement-pin.insects { background: #af52de; }
+
+/* Measurement Info Box */
+.measurement-info {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(15px);
+    border-radius: 10px;
+    padding: 12px;
+    min-width: 180px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    z-index: 25;
+    font-size: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    animation: fadeInScale 0.3s ease-out;
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.measurement-info h4 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    color: #1d1d1f;
+    font-weight: 600;
+}
+
+.measurement-info .measurement-details {
+    display: grid;
+    gap: 6px;
+}
+
+.measurement-info .detail-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.measurement-info .detail-item:last-child {
+    border-bottom: none;
+}
+
+.measurement-info .detail-label {
+    color: #86868b;
+    font-weight: 500;
+}
+
+.measurement-info .detail-value {
+    font-weight: 600;
+    color: #1d1d1f;
+}
+
+.measurement-info .location-name {
+    font-weight: 700;
+    color: #007aff;
+}
+
+/* Clear Markers Button */
+.clear-markers-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 11px;
+    cursor: pointer;
+    z-index: 20;
+    transition: all 0.2s ease;
+}
+
+.clear-markers-btn:hover {
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}

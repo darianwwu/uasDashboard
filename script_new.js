@@ -39,9 +39,253 @@ class RiverDashboard {
         document.getElementById('refresh-data').addEventListener('click', () => this.updateData());
         document.getElementById('export-data').addEventListener('click', () => this.exportData());
         
+        // Clickable measurement values
+        this.setupMeasurementClicks();
+        
         // Window resize handler
         window.addEventListener('resize', () => this.handleResize());
-    }    async loadWeatherData() {
+    }    setupMeasurementClicks() {
+        const clickableValues = document.querySelectorAll('.clickable-value');
+        clickableValues.forEach(element => {
+            element.addEventListener('click', (e) => {
+                const measurementType = element.dataset.measurement;
+                this.showMeasurementMarkers(measurementType, element);
+            });
+        });
+    }
+
+    showMeasurementMarkers(measurementType, clickedElement) {
+        // Clear existing markers
+        this.clearMeasurementMarkers();
+        
+        // Highlight selected measurement
+        document.querySelectorAll('.clickable-value').forEach(el => el.classList.remove('selected'));
+        clickedElement.classList.add('selected');
+        
+        // Get measurement data for the type
+        const measurementData = this.getMeasurementData(measurementType);
+        
+        // Show markers on map
+        const mapWrapper = document.querySelector('.map-wrapper');
+        
+        // Add clear button if not exists
+        if (!mapWrapper.querySelector('.clear-markers-btn')) {
+            const clearBtn = document.createElement('button');
+            clearBtn.className = 'clear-markers-btn';
+            clearBtn.textContent = 'Clear Markers';
+            clearBtn.onclick = () => this.clearMeasurementMarkers();
+            mapWrapper.appendChild(clearBtn);
+        }
+        
+        measurementData.forEach((measurement, index) => {
+            setTimeout(() => {
+                this.createMeasurementPin(measurement, measurementType);
+            }, index * 150); // Staggered animation
+        });
+        
+        console.log(`📍 Showing ${measurementData.length} ${measurementType} measurement points`);
+    }
+
+    getMeasurementData(measurementType) {
+        // Generate realistic measurement data for different locations
+        const baseData = {
+            ph: {
+                unit: '',
+                range: [6.5, 8.5],
+                precision: 1
+            },
+            conductivity: {
+                unit: ' μS/cm',
+                range: [300, 600],
+                precision: 0
+            },
+            'water-temperature': {
+                unit: '°C',
+                range: [12, 25],
+                precision: 1
+            },
+            oxygen: {
+                unit: ' mg/L',
+                range: [6, 12],
+                precision: 1
+            },
+            'soil-humidity': {
+                unit: '%',
+                range: [40, 85],
+                precision: 0
+            },
+            'soil-temperature': {
+                unit: '°C',
+                range: [8, 22],
+                precision: 1
+            },
+            'soil-moisture': {
+                unit: '%',
+                range: [25, 65],
+                precision: 0
+            },
+            vegetation: {
+                unit: '%',
+                range: [65, 95],
+                precision: 0
+            },
+            insects: {
+                unit: ' species',
+                range: [15, 35],
+                precision: 0
+            }
+        };
+
+        const locations = [
+            { name: 'Upstream Point', x: 25, y: 30, coords: '51.947°N, 7.570°E' },
+            { name: 'River Center', x: 50, y: 45, coords: '51.945°N, 7.573°E' },
+            { name: 'Downstream Point', x: 75, y: 60, coords: '51.943°N, 7.575°E' },
+            { name: 'Wetland Area', x: 35, y: 25, coords: '51.946°N, 7.569°E' },
+            { name: 'Restoration Zone 1', x: 60, y: 35, coords: '51.944°N, 7.574°E' },
+            { name: 'Restoration Zone 2', x: 40, y: 55, coords: '51.945°N, 7.571°E' }
+        ];
+
+        const typeData = baseData[measurementType];
+        if (!typeData) return [];
+
+        return locations.map(location => {
+            const value = (Math.random() * (typeData.range[1] - typeData.range[0]) + typeData.range[0]);
+            const formattedValue = typeData.precision === 0 ? 
+                Math.round(value) : 
+                value.toFixed(typeData.precision);
+            
+            const now = new Date();
+            const measurementTime = new Date(now.getTime() - Math.random() * 3600000); // Random time within last hour
+            
+            return {
+                ...location,
+                value: formattedValue + typeData.unit,
+                rawValue: value,
+                timestamp: measurementTime.toLocaleTimeString('en-US', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                }),
+                quality: this.getDataQuality(value, typeData.range)
+            };
+        });
+    }
+
+    getDataQuality(value, range) {
+        const mid = (range[0] + range[1]) / 2;
+        const tolerance = (range[1] - range[0]) * 0.3;
+        
+        if (Math.abs(value - mid) < tolerance / 2) return 'excellent';
+        if (Math.abs(value - mid) < tolerance) return 'good';
+        return 'warning';
+    }
+
+    createMeasurementPin(measurement, measurementType) {
+        const mapWrapper = document.querySelector('.map-wrapper');
+        const mapRect = mapWrapper.getBoundingClientRect();
+        
+        // Calculate position on map (percentage-based)
+        const pinX = (measurement.x / 100) * mapWrapper.offsetWidth;
+        const pinY = (measurement.y / 100) * mapWrapper.offsetHeight;
+        
+        // Create pin element
+        const pin = document.createElement('div');
+        pin.className = `measurement-pin ${measurementType}`;
+        pin.style.left = `${pinX}px`;
+        pin.style.top = `${pinY}px`;
+        pin.dataset.measurement = JSON.stringify(measurement);
+        pin.dataset.type = measurementType;
+        
+        // Add click handler for pin
+        pin.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.showMeasurementInfo(measurement, measurementType, pinX, pinY);
+        });
+        
+        mapWrapper.appendChild(pin);
+        
+        // Animate pin appearance
+        setTimeout(() => {
+            pin.style.transform = 'scale(1)';
+        }, 50);
+    }
+
+    showMeasurementInfo(measurement, measurementType, pinX, pinY) {
+        // Remove existing info boxes
+        document.querySelectorAll('.measurement-info').forEach(info => info.remove());
+        
+        const mapWrapper = document.querySelector('.map-wrapper');
+        const info = document.createElement('div');
+        info.className = 'measurement-info';
+        
+        // Position info box
+        let infoX = pinX + 25;
+        let infoY = pinY - 10;
+        
+        // Adjust position if too close to edges
+        if (infoX + 200 > mapWrapper.offsetWidth) {
+            infoX = pinX - 225;
+        }
+        if (infoY < 0) {
+            infoY = pinY + 25;
+        }
+        
+        info.style.left = `${infoX}px`;
+        info.style.top = `${infoY}px`;
+        
+        const measurementTypeFormatted = measurementType.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase());
+        
+        info.innerHTML = `
+            <h4>${measurementTypeFormatted} Measurement</h4>
+            <div class="measurement-details">
+                <div class="detail-item">
+                    <span class="detail-label">Location:</span>
+                    <span class="detail-value location-name">${measurement.name}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Coordinates:</span>
+                    <span class="detail-value">${measurement.coords}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Value:</span>
+                    <span class="detail-value ${measurement.quality}">${measurement.value}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Time:</span>
+                    <span class="detail-value">${measurement.timestamp}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Quality:</span>
+                    <span class="detail-value ${measurement.quality}">${measurement.quality.toUpperCase()}</span>
+                </div>
+            </div>
+        `;
+        
+        // Add close handler when clicking elsewhere
+        const closeInfo = (e) => {
+            if (!info.contains(e.target) && !e.target.classList.contains('measurement-pin')) {
+                info.remove();
+                document.removeEventListener('click', closeInfo);
+            }
+        };
+        
+        mapWrapper.appendChild(info);
+        
+        // Add close handler after a short delay
+        setTimeout(() => {
+            document.addEventListener('click', closeInfo);
+        }, 100);
+    }
+
+    clearMeasurementMarkers() {
+        document.querySelectorAll('.measurement-pin').forEach(pin => pin.remove());
+        document.querySelectorAll('.measurement-info').forEach(info => info.remove());
+        document.querySelectorAll('.clear-markers-btn').forEach(btn => btn.remove());
+        document.querySelectorAll('.clickable-value').forEach(el => el.classList.remove('selected'));
+        
+        console.log('🧹 Cleared all measurement markers');
+    }
+
+    async loadWeatherData() {
         // Show loading indicator
         document.getElementById('weather-data').innerHTML = `
             <div class="weather-loading">
